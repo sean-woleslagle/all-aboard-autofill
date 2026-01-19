@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Extension Icons</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #3B82F6;
+            margin-top: 0;
+        }
+        button {
+            background: #3B82F6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #2563EB;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f9ff;
+            border-left: 4px solid #3B82F6;
+            border-radius: 4px;
+            display: none;
+        }
+        #output.show {
+            display: block;
+        }
+        .preview {
+            margin-top: 20px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+        }
+        .preview img {
+            border: 2px solid #e5e7eb;
+            border-radius: 4px;
+        }
+        .instructions {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🎨 Generate Icons for Chrome Extension</h2>
+        
+        <div class="instructions">
+            <strong>Instructions:</strong>
+            <ol>
+                <li>Click the button below to generate all three icon sizes</li>
+                <li>Three PNG files will download automatically</li>
+                <li>Move the downloaded files to the <code>/public/</code> folder</li>
+                <li>Rebuild the extension with <code>npm run build</code></li>
+            </ol>
+        </div>
+
+        <button onclick="generateIcons()">✨ Generate All Icons (16, 48, 128)</button>
+        
+        <div id="output">
+            <p id="status"></p>
+        </div>
+
+        <div class="preview" id="preview" style="display:none;">
+            <div>
+                <p><strong>16x16</strong></p>
+                <img id="img16" width="16" height="16">
+            </div>
+            <div>
+                <p><strong>48x48</strong></p>
+                <img id="img48" width="48" height="48">
+            </div>
+            <div>
+                <p><strong>128x128</strong></p>
+                <img id="img128" width="128" height="128">
+            </div>
+        </div>
+    </div>
+
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <script>
+        function drawIcon(ctx, size) {
+            // Clear canvas
+            ctx.clearRect(0, 0, size, size);
+            
+            // Draw rounded rectangle background
+            const radius = size * 0.15;
+            ctx.fillStyle = '#3B82F6';
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, radius);
+            ctx.fill();
+            
+            // Draw document icon
+            const docSize = size * 0.6;
+            const docX = size * 0.2;
+            const docY = size * 0.15;
+            
+            ctx.fillStyle = 'white';
+            ctx.fillRect(docX, docY, docSize, docSize * 0.9);
+            
+            // Draw lines on document
+            const lineWidth = docSize * 0.6;
+            const lineX = docX + docSize * 0.2;
+            ctx.strokeStyle = '#3B82F6';
+            ctx.lineWidth = size * 0.03;
+            ctx.lineCap = 'round';
+            
+            // Three horizontal lines
+            [0.3, 0.45, 0.6].forEach((yPos, index) => {
+                const lineLength = index === 2 ? lineWidth * 0.7 : lineWidth;
+                ctx.beginPath();
+                ctx.moveTo(lineX, docY + docSize * yPos);
+                ctx.lineTo(lineX + lineLength, docY + docSize * yPos);
+                ctx.stroke();
+            });
+            
+            // Draw checkmark circle
+            const checkSize = size * 0.25;
+            const checkX = size * 0.7;
+            const checkY = size * 0.25;
+            
+            ctx.fillStyle = '#10B981';
+            ctx.beginPath();
+            ctx.arc(checkX, checkY, checkSize, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw checkmark
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = size * 0.04;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            ctx.moveTo(checkX - checkSize * 0.35, checkY);
+            ctx.lineTo(checkX - checkSize * 0.1, checkY + checkSize * 0.3);
+            ctx.lineTo(checkX + checkSize * 0.4, checkY - checkSize * 0.35);
+            ctx.stroke();
+        }
+
+        async function generateIcons() {
+            const sizes = [16, 48, 128];
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            const output = document.getElementById('output');
+            const status = document.getElementById('status');
+            const preview = document.getElementById('preview');
+            
+            output.classList.add('show');
+            status.textContent = 'Generating icons...';
+            
+            let completed = 0;
+
+            for (const size of sizes) {
+                canvas.width = size;
+                canvas.height = size;
+                
+                // Draw the icon
+                drawIcon(ctx, size);
+                
+                // Show preview
+                const previewImg = document.getElementById(`img${size}`);
+                previewImg.src = canvas.toDataURL();
+                
+                // Convert to blob and download
+                await new Promise(resolve => {
+                    canvas.toBlob((blob) => {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `icon${size}.png`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        
+                        completed++;
+                        status.textContent = `Generated ${completed} of ${sizes.length} icons...`;
+                        resolve();
+                    }, 'image/png');
+                });
+            }
+            
+            preview.style.display = 'flex';
+            status.innerHTML = `
+                <strong>✅ Success!</strong><br>
+                All icons generated and downloaded!<br>
+                <small>Move the downloaded PNG files to your /public/ folder, then rebuild the extension.</small>
+            `;
+        }
+
+        // Add roundRect polyfill for older browsers
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                this.moveTo(x + radius, y);
+                this.lineTo(x + width - radius, y);
+                this.quadraticCurveTo(x + width, y, x + width, y + radius);
+                this.lineTo(x + width, y + height - radius);
+                this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                this.lineTo(x + radius, y + height);
+                this.quadraticCurveTo(x, y + height, x, y + height - radius);
+                this.lineTo(x, y + radius);
+                this.quadraticCurveTo(x, y, x + radius, y);
+            };
+        }
+    </script>
+</body>
+</html>

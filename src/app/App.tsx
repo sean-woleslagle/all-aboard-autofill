@@ -1,0 +1,417 @@
+import { useState, useEffect } from 'react';
+import { PersonalInfoSection } from '@/app/components/PersonalInfoSection';
+import { SocialLinksSection } from '@/app/components/SocialLinksSection';
+import { EmploymentSection } from '@/app/components/EmploymentSection';
+import { EducationSection } from '@/app/components/EducationSection';
+import { SkillsSection } from '@/app/components/SkillsSection';
+import { ReferencesSection } from '@/app/components/ReferencesSection';
+import { DemographicsSection } from '@/app/components/DemographicsSection';
+import { EligibilityLegalSection } from '@/app/components/EligibilityLegalSection';
+import { ImportDataModal } from '@/app/components/ImportDataModal';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { ThemeToggle } from '@/app/components/ThemeToggle';
+import { Button } from '@/app/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { Switch } from '@/app/components/ui/switch';
+import { Label } from '@/app/components/ui/label';
+import { Alert, AlertDescription } from '@/app/components/ui/alert';
+import { Save, FileDown, Zap, Lock, Train, AlertTriangle } from 'lucide-react';
+import { toast, Toaster } from 'sonner';
+
+export interface UserData {
+  // Personal Info
+  firstName: string;
+  lastName: string;
+  preferredFirstName: string;
+  preferredLastName: string;
+  dateOfBirth: string;
+  gender: string;
+  
+  // Contact Info
+  email: string;
+  phone: string;
+  address: string;
+  address2: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  
+  // Compensation & Availability
+  desiredSalary: string;
+  desiredHourlyRate: string;
+  earliestStartDate: string;
+  employmentType: string;
+  
+  // Social Links
+  linkedin: string;
+  twitter: string;
+  website: string;
+  github: string;
+  bluesky: string;
+  instagram: string;
+  facebook: string;
+  tiktok: string;
+  youtube: string;
+  artstation: string;
+  gitlab: string;
+  bitbucket: string;
+  replit: string;
+  leetcode: string;
+  medium: string;
+  substack: string;
+  threads: string;
+  mastodon: string;
+  
+  // Employment History
+  employmentHistory: Array<{
+    company: string;
+    position: string;
+    startDate: string;
+    endDate: string;
+    description: string;
+    reasonForLeaving: string;
+    supervisorName: string;
+    supervisorContact: string;
+    permissionToContact: string;
+  }>;
+  
+  // Education History
+  educationHistory: Array<{
+    level: string;
+    schoolName: string;
+    degreeType: string;
+    fieldOfStudy: string;
+    graduationDate: string;
+  }>;
+  
+  // Skills & Qualifications
+  skills: Array<{
+    name: string;
+    yearsOfExperience: string;
+  }>;
+  
+  certifications: Array<{
+    name: string;
+    issuer: string;
+    dateObtained: string;
+  }>;
+  
+  languages: Array<{
+    name: string;
+    proficiency: string;
+  }>;
+  
+  // References
+  references: Array<{
+    name: string;
+    relationship: string;
+    email: string;
+    phone: string;
+    company: string;
+    jobTitle: string;
+  }>;
+  
+  // Demographics
+  disability: string;
+  race: string;
+  veteran: string;
+  
+  // Eligibility & Legal
+  workAuthorization: string;
+  requireSponsorship: string;
+  over18: string;
+  willingToRelocate: string;
+  willingToTravel: string;
+  ableToWorkSchedule: string;
+  
+  // Settings
+  autoFillOnLoad: boolean;
+}
+
+const defaultUserData: UserData = {
+  firstName: '',
+  lastName: '',
+  preferredFirstName: '',
+  preferredLastName: '',
+  dateOfBirth: '',
+  gender: '',
+  email: '',
+  phone: '',
+  address: '',
+  address2: '',
+  city: '',
+  state: '',
+  postalCode: '',
+  country: '',
+  desiredSalary: '',
+  desiredHourlyRate: '',
+  earliestStartDate: '',
+  employmentType: '',
+  linkedin: '',
+  twitter: '',
+  website: '',
+  github: '',
+  bluesky: '',
+  instagram: '',
+  facebook: '',
+  tiktok: '',
+  youtube: '',
+  artstation: '',
+  gitlab: '',
+  bitbucket: '',
+  replit: '',
+  leetcode: '',
+  medium: '',
+  substack: '',
+  threads: '',
+  mastodon: '',
+  employmentHistory: [],
+  educationHistory: [],
+  skills: [],
+  certifications: [],
+  languages: [],
+  references: [],
+  disability: '',
+  race: '',
+  veteran: '',
+  workAuthorization: '',
+  requireSponsorship: '',
+  over18: '',
+  willingToRelocate: '',
+  willingToTravel: '',
+  ableToWorkSchedule: '',
+  autoFillOnLoad: false,
+};
+
+export default function App() {
+  const [userData, setUserData] = useState<UserData>(defaultUserData);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load data from Chrome storage
+  useEffect(() => {
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      chrome.storage.sync.get(['userData'], (result) => {
+        if (result.userData) {
+          setUserData({ ...defaultUserData, ...result.userData });
+        }
+        setIsLoading(false);
+      });
+    } else {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Save data to Chrome storage
+  const handleSave = () => {
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      chrome.storage.sync.set({ userData }, () => {
+        toast.success('Settings saved successfully!');
+      });
+    } else {
+      toast.error('Chrome storage not available');
+    }
+  };
+
+  // Auto-fill current page
+  const handleAutoFill = () => {
+    if (typeof chrome !== 'undefined' && chrome.tabs) {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]?.id) {
+          chrome.tabs.sendMessage(tabs[0].id, { action: 'autoFill' }, (response) => {
+            if (response?.success) {
+              toast.success('Form auto-filled!');
+            } else {
+              toast.error('Failed to auto-fill form');
+            }
+          });
+        }
+      });
+    } else {
+      toast.info('Auto-fill will work when installed as a Chrome extension');
+    }
+  };
+
+  // Export data to JSON
+  const handleExport = () => {
+    const dataStr = JSON.stringify(userData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'job-autofill-data.json';
+    link.click();
+    toast.success('Data exported successfully!');
+  };
+
+  // Import data from JSON
+  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const importedData = JSON.parse(e.target?.result as string);
+          setUserData({ ...defaultUserData, ...importedData });
+          toast.success('Data imported successfully!');
+        } catch (error) {
+          toast.error('Failed to import data. Invalid JSON file.');
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  // Handle resume data extraction
+  const handleResumeDataExtracted = (extractedData: Partial<UserData>) => {
+    setUserData(prev => ({ ...prev, ...extractedData }));
+    toast.success('Resume data has been imported! Please review and save.');
+  };
+
+  // Handle JSON import
+  const handleJsonImported = (importedData: UserData) => {
+    setUserData({ ...defaultUserData, ...importedData });
+    toast.success('Data imported successfully!');
+  };
+
+  const updateUserData = (field: keyof UserData, value: any) => {
+    setUserData(prev => ({ ...prev, [field]: value }));
+  };
+
+  if (isLoading) {
+    return (
+      <ThemeProvider>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </ThemeProvider>
+    );
+  }
+
+  return (
+    <ThemeProvider>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-8">
+        <Toaster position="top-right" richColors />
+        
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Train className="w-8 h-8 text-blue-600" />
+                <div>
+                  <h1 className="mb-0">All Aboard ATS Auto-Filler</h1>
+                  <p className="text-gray-600">An easy way to take the pain out of filling out legacy job applications</p>
+                </div>
+              </div>
+              <ThemeToggle />
+            </div>
+          </div>
+
+          <Alert className="mb-6">
+            <Lock className="h-4 w-4" />
+            <AlertDescription>
+              Your data is stored locally in your browser and never sent to any external servers. Everything stays private on your device.
+            </AlertDescription>
+          </Alert>
+
+          <Alert className="mb-6 border-amber-200 bg-amber-50">
+            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-amber-900">
+              Due to the way ATS systems such as Workday, iCIMS, Greenhouse, Lever, Taleo, etc. work, this may not work 100% of the time, but we try to make it so it works as well as the ATS lets it. Our goal is to help save you time, so by filling these out, we hope you find that it does save you time and we value your feedback.
+            </AlertDescription>
+          </Alert>
+
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+              <CardDescription>Save your data and auto-fill forms with one click</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-wrap gap-3">
+                <Button onClick={handleSave} className="gap-2">
+                  <Save className="w-4 h-4" />
+                  Save Settings
+                </Button>
+                <Button onClick={handleAutoFill} variant="secondary" className="gap-2">
+                  <Zap className="w-4 h-4" />
+                  Auto-Fill Current Page
+                </Button>
+                <ImportDataModal 
+                  onDataExtracted={handleResumeDataExtracted}
+                  onJsonImported={handleJsonImported}
+                />
+                <Button onClick={handleExport} variant="outline" className="gap-2">
+                  <FileDown className="w-4 h-4" />
+                  Export Data
+                </Button>
+              </div>
+              
+              <div className="flex items-center justify-between pt-4 border-t">
+                <div className="space-y-0.5">
+                  <Label htmlFor="auto-fill-toggle">Auto-fill on page load</Label>
+                  <p className="text-sm text-gray-500">
+                    Automatically fill forms when you visit job application pages
+                  </p>
+                </div>
+                <Switch
+                  id="auto-fill-toggle"
+                  checked={userData.autoFillOnLoad}
+                  onCheckedChange={(checked) => updateUserData('autoFillOnLoad', checked)}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Tabs defaultValue="personal" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-8">
+              <TabsTrigger value="personal">Personal</TabsTrigger>
+              <TabsTrigger value="social">Social</TabsTrigger>
+              <TabsTrigger value="employment">Employment</TabsTrigger>
+              <TabsTrigger value="education">Education</TabsTrigger>
+              <TabsTrigger value="skills">Skills</TabsTrigger>
+              <TabsTrigger value="references">References</TabsTrigger>
+              <TabsTrigger value="demographics">Demographics</TabsTrigger>
+              <TabsTrigger value="eligibility">Eligibility</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="personal">
+              <PersonalInfoSection userData={userData} updateUserData={updateUserData} />
+            </TabsContent>
+
+            <TabsContent value="social">
+              <SocialLinksSection userData={userData} updateUserData={updateUserData} />
+            </TabsContent>
+
+            <TabsContent value="employment">
+              <EmploymentSection userData={userData} updateUserData={updateUserData} />
+            </TabsContent>
+
+            <TabsContent value="education">
+              <EducationSection userData={userData} updateUserData={updateUserData} />
+            </TabsContent>
+
+            <TabsContent value="skills">
+              <SkillsSection userData={userData} updateUserData={updateUserData} />
+            </TabsContent>
+
+            <TabsContent value="references">
+              <ReferencesSection userData={userData} updateUserData={updateUserData} />
+            </TabsContent>
+
+            <TabsContent value="demographics">
+              <DemographicsSection userData={userData} updateUserData={updateUserData} />
+            </TabsContent>
+
+            <TabsContent value="eligibility">
+              <EligibilityLegalSection userData={userData} updateUserData={updateUserData} />
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+    </ThemeProvider>
+  );
+}
