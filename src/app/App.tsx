@@ -16,7 +16,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app
 import { Switch } from '@/app/components/ui/switch';
 import { Label } from '@/app/components/ui/label';
 import { Alert, AlertDescription } from '@/app/components/ui/alert';
-import { Save, FileDown, Zap, Lock, Train, AlertTriangle } from 'lucide-react';
+import { Save, FileDown, Zap, Lock, Train, AlertTriangle, Shield, ChevronDown } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/app/components/ui/collapsible';
 import { toast, Toaster } from 'sonner';
 
 export interface UserData {
@@ -307,14 +308,76 @@ export default function App() {
                   <p className="text-gray-600">An easy way to take the pain out of filling out legacy job applications</p>
                 </div>
               </div>
-              <ThemeToggle />
+              <div className="flex items-center gap-2 relative">
+                <Collapsible>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Shield className="w-4 h-4" />
+                      Privacy & Data Use
+                      <ChevronDown className="w-4 h-4" />
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="absolute right-0 mt-2 w-[600px] z-50 bg-white dark:bg-gray-900 border rounded-lg shadow-lg p-6 max-h-[70vh] overflow-y-auto">
+                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                      <h2 className="text-lg font-semibold mb-4">Privacy Policy</h2>
+                      <p className="text-xs text-gray-500 mb-4">Last updated: January 2026</p>
+                      <p className="mb-4">This privacy policy explains how this Chrome extension ("the Extension") handles your information.</p>
+
+                      <h3 className="text-md font-semibold mt-4 mb-2">1. Information Stored</h3>
+                      <p className="mb-2">The Extension may store information you choose to provide, including but not limited to:</p>
+                      <ul className="list-disc pl-5 mb-4 space-y-1">
+                        <li>First and last name</li>
+                        <li>Email address and phone number</li>
+                        <li>Home address and previous addresses</li>
+                        <li>Employment history (employers, roles, dates)</li>
+                        <li>Education history (schools, degrees, GPA)</li>
+                        <li>References and related contact information</li>
+                      </ul>
+                      <p className="mb-4">This information is used solely to assist with filling out job application forms.</p>
+
+                      <h3 className="text-md font-semibold mt-4 mb-2">2. Where Your Data Is Stored</h3>
+                      <p className="mb-2">All information is stored locally in your browser using Chrome's extension storage.</p>
+                      <p className="mb-4">The Extension does not store your data on external servers owned or operated by us.</p>
+
+                      <h3 className="text-md font-semibold mt-4 mb-2">3. Data Collection & Sharing</h3>
+                      <p className="mb-2">We do not:</p>
+                      <ul className="list-disc pl-5 mb-4 space-y-1">
+                        <li>Collect your data on our servers</li>
+                        <li>Sell or rent your personal information</li>
+                        <li>Share your data with third parties</li>
+                        <li>Use analytics, tracking, or advertising tools</li>
+                      </ul>
+                      <p className="mb-4">Your data is only used locally by the Extension and is submitted only to job application websites you choose to interact with.</p>
+
+                      <h3 className="text-md font-semibold mt-4 mb-2">4. User Control & Data Deletion</h3>
+                      <p className="mb-2">You are always in control of your data.</p>
+                      <ul className="list-disc pl-5 mb-4 space-y-1">
+                        <li>You can edit or delete stored information at any time within the Extension</li>
+                        <li>You can remove all stored data by uninstalling the Extension</li>
+                        <li>No data persists after removal of the Extension</li>
+                      </ul>
+
+                      <h3 className="text-md font-semibold mt-4 mb-2">5. Third-Party Websites</h3>
+                      <p className="mb-4">When you apply for a job, your information is submitted directly to third-party websites (such as employer career pages or applicant tracking systems). Their handling of your data is governed by their own privacy policies, not this one.</p>
+
+                      <h3 className="text-md font-semibold mt-4 mb-2">6. Changes to This Policy</h3>
+                      <p className="mb-4">This privacy policy may be updated from time to time. Any changes will be reflected within the Extension.</p>
+
+                      <h3 className="text-md font-semibold mt-4 mb-2">7. Contact</h3>
+                      <p className="mb-2">If you have questions or concerns about this privacy policy, you may contact:</p>
+                      <p className="mb-4">Email: <a href="mailto:Sean.woleslagle@gmail.com" className="text-blue-600 hover:underline">Sean.woleslagle@gmail.com</a></p>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+                <ThemeToggle />
+              </div>
             </div>
           </div>
 
           <Alert className="mb-6">
             <Lock className="h-4 w-4" />
             <AlertDescription>
-              Your data is stored locally in your browser and never sent to any external servers. Everything stays private on your device.
+              Your information is stored locally in your browser. We do not collect, sell, or transmit your data to our servers. Data is used only within the extension to assist with filling job application forms on third-party websites you choose.
             </AlertDescription>
           </Alert>
 

@@ -9,8 +9,14 @@ import { UserData } from '@/app/App';
 import * as pdfjsLib from 'pdfjs-dist';
 import mammoth from 'mammoth';
 
-// Configure PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Configure PDF.js worker for Chrome extension
+// Use local bundled worker file to comply with CSP
+if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('pdf.worker.min.js');
+} else {
+  // Fallback for development
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+}
 
 interface ImportDataModalProps {
   onDataExtracted: (data: Partial<UserData>) => void;

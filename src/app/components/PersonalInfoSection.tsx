@@ -71,10 +71,10 @@ export function PersonalInfoSection({ userData, updateUserData }: PersonalInfoSe
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="gender">Gender</Label>
+              <Label htmlFor="gender">Sex</Label>
               <Select value={userData.gender} onValueChange={(value) => updateUserData('gender', value)}>
                 <SelectTrigger id="gender">
-                  <SelectValue placeholder="Select gender" />
+                  <SelectValue placeholder="Select sex" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="male">Male</SelectItem>
