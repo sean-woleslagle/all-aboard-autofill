@@ -242,14 +242,6 @@ try {
   extensionContextValid = false;
 }
 
-// Auto-fill on page load if enabled
-loadUserData((userData) => {
-  if (userData && userData.autoFillOnLoad) {
-    // Wait a bit for dynamic forms to load
-    setTimeout(() => autoFillForm(userData), 1000);
-  }
-});
-
 // Watch for dynamically added forms
 let observer = null;
 
@@ -266,11 +258,7 @@ function setupObserver() {
       return;
     }
 
-    loadUserData((userData) => {
-      if (userData && userData.autoFillOnLoad) {
-        autoFillForm(userData);
-      }
-    });
+    // Auto-fill is only triggered by user clicking the extension
   });
 
   if (document.body) {

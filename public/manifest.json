@@ -5,11 +5,7 @@
   "description": "Automatically fill job application forms with your personal information",
   "permissions": [
     "storage",
-    "activeTab",
-    "scripting"
-  ],
-  "host_permissions": [
-    "<all_urls>"
+    "activeTab"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -22,7 +18,28 @@
   "options_page": "index.html",
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": [
+        "https://www.linkedin.com/*",
+        "https://www.indeed.com/*",
+        "https://www.glassdoor.com/*",
+        "https://www.ziprecruiter.com/*",
+        "https://www.monster.com/*",
+        "https://www.dice.com/*",
+        "https://www.governmentjobs.com/*",
+        "https://www.usajobs.gov/*",
+        "https://www.credible.com/*",
+        "https://www.workable.com/*",
+        "https://www.applicant-tracking.com/*",
+        "https://*.greenhouse.io/*",
+        "https://*.lever.co/*",
+        "https://*.workday.com/*",
+        "https://*.talentlms.com/*",
+        "https://*.successfactors.com/*",
+        "https://*.bamboohr.com/*",
+        "https://*.careers/*",
+        "https://*.jobs/*",
+        "https://*.apply/*"
+      ],
       "js": ["content.js"],
       "run_at": "document_idle"
     }
@@ -35,7 +52,28 @@
   "web_accessible_resources": [
     {
       "resources": ["pdf.worker.min.js"],
-      "matches": ["<all_urls>"]
+      "matches": [
+        "https://www.linkedin.com/*",
+        "https://www.indeed.com/*",
+        "https://www.glassdoor.com/*",
+        "https://www.ziprecruiter.com/*",
+        "https://www.monster.com/*",
+        "https://www.dice.com/*",
+        "https://www.governmentjobs.com/*",
+        "https://www.usajobs.gov/*",
+        "https://www.credible.com/*",
+        "https://www.workable.com/*",
+        "https://www.applicant-tracking.com/*",
+        "https://*.greenhouse.io/*",
+        "https://*.lever.co/*",
+        "https://*.workday.com/*",
+        "https://*.talentlms.com/*",
+        "https://*.successfactors.com/*",
+        "https://*.bamboohr.com/*",
+        "https://*.careers/*",
+        "https://*.jobs/*",
+        "https://*.apply/*"
+      ]
     }
   ]
 }

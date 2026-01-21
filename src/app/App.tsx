@@ -126,9 +126,6 @@ export interface UserData {
   willingToRelocate: string;
   willingToTravel: string;
   ableToWorkSchedule: string;
-  
-  // Settings
-  autoFillOnLoad: boolean;
 }
 
 const defaultUserData: UserData = {
@@ -183,7 +180,6 @@ const defaultUserData: UserData = {
   willingToRelocate: '',
   willingToTravel: '',
   ableToWorkSchedule: '',
-  autoFillOnLoad: false,
 };
 
 export default function App() {
@@ -411,20 +407,6 @@ export default function App() {
                   <FileDown className="w-4 h-4" />
                   Export Data
                 </Button>
-              </div>
-              
-              <div className="flex items-center justify-between pt-4 border-t">
-                <div className="space-y-0.5">
-                  <Label htmlFor="auto-fill-toggle">Auto-fill on page load</Label>
-                  <p className="text-sm text-gray-500">
-                    Automatically fill forms when you visit job application pages
-                  </p>
-                </div>
-                <Switch
-                  id="auto-fill-toggle"
-                  checked={userData.autoFillOnLoad}
-                  onCheckedChange={(checked) => updateUserData('autoFillOnLoad', checked)}
-                />
               </div>
             </CardContent>
           </Card>

@@ -8,9 +8,7 @@ import { ThemeToggle } from '@/app/components/ThemeToggle';
 import { Settings, Zap, FileDown, Upload, Train, CheckCircle, XCircle } from 'lucide-react';
 import { UserData } from '@/app/App';
 
-const defaultUserData: Partial<UserData> = {
-  autoFillOnLoad: false,
-};
+const defaultUserData: Partial<UserData> = {};
 
 export default function Popup() {
   const [userData, setUserData] = useState<Partial<UserData>>(defaultUserData);
@@ -49,15 +47,6 @@ export default function Popup() {
           });
         }
       });
-    }
-  };
-
-  const handleToggleAutoFill = (checked: boolean) => {
-    const newData = { ...userData, autoFillOnLoad: checked };
-    setUserData(newData);
-    
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      chrome.storage.sync.set({ userData: newData });
     }
   };
 
@@ -156,20 +145,6 @@ export default function Popup() {
               <span>Unable to fill form on this page</span>
             </div>
           )}
-
-          <Separator />
-
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="auto-fill-popup" className="text-sm">Auto-fill on load</Label>
-              <p className="text-xs text-gray-500">Fill forms automatically</p>
-            </div>
-            <Switch
-              id="auto-fill-popup"
-              checked={userData.autoFillOnLoad || false}
-              onCheckedChange={handleToggleAutoFill}
-            />
-          </div>
         </CardContent>
       </Card>
 
