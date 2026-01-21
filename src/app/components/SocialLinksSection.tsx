@@ -3,7 +3,6 @@ import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { 
   Linkedin, 
-  X,
   Globe, 
   Github, 
   Instagram, 
@@ -15,6 +14,7 @@ import {
   Newspaper,
   Cloud
 } from 'lucide-react';
+import { XLogo } from '@/app/components/XLogo';
 import { UserData } from '@/app/App';
 
 interface SocialLinksSectionProps {
@@ -132,7 +132,7 @@ export function SocialLinksSection({ userData, updateUserData }: SocialLinksSect
           
           <div className="space-y-2">
             <Label htmlFor="twitter" className="flex items-center gap-2">
-              <X className="w-4 h-4" />
+              <XLogo className="w-4 h-4" />
               X (Twitter)
             </Label>
             <Input
