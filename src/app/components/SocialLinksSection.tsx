@@ -15,7 +15,6 @@ import {
   Cloud
 } from 'lucide-react';
 import { XLogo } from '@/app/components/XLogo';
-import { ThreadsLogo } from '@/app/components/ThreadsLogo';
 import { UserData } from '@/app/App';
 
 interface SocialLinksSectionProps {
@@ -159,7 +158,7 @@ export function SocialLinksSection({ userData, updateUserData }: SocialLinksSect
 
           <div className="space-y-2">
             <Label htmlFor="threads" className="flex items-center gap-2">
-              <ThreadsLogo className="w-4 h-4" />
+              <Globe className="w-4 h-4" />
               Threads
             </Label>
             <Input
