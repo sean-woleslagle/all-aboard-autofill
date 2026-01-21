@@ -3,7 +3,7 @@ import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { 
   Linkedin, 
-  Twitter, 
+  X,
   Globe, 
   Github, 
   Instagram, 
@@ -132,7 +132,7 @@ export function SocialLinksSection({ userData, updateUserData }: SocialLinksSect
           
           <div className="space-y-2">
             <Label htmlFor="twitter" className="flex items-center gap-2">
-              <Twitter className="w-4 h-4" />
+              <X className="w-4 h-4" />
               X (Twitter)
             </Label>
             <Input
