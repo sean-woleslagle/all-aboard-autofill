@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { PersonalInfoSection } from '@/app/components/PersonalInfoSection';
 import { SocialLinksSection } from '@/app/components/SocialLinksSection';
 import { EmploymentSection } from '@/app/components/EmploymentSection';
@@ -185,30 +185,154 @@ const defaultUserData: UserData = {
 export default function App() {
   const [userData, setUserData] = useState<UserData>(defaultUserData);
   const [isLoading, setIsLoading] = useState(true);
+  const isInitialLoad = useRef(true);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Use a ref to always have the latest userData for saving on unmount
+  const userDataRef = useRef<UserData>(defaultUserData);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    userDataRef.current = userData;
+  }, [userData]);
 
   // Load data from Chrome storage
   useEffect(() => {
     if (typeof chrome !== 'undefined' && chrome.storage) {
       chrome.storage.sync.get(['userData'], (result) => {
         if (result.userData) {
-          setUserData({ ...defaultUserData, ...result.userData });
+          const loadedData = { ...defaultUserData, ...result.userData };
+          setUserData(loadedData);
+          userDataRef.current = loadedData;
         }
         setIsLoading(false);
+        // Mark initial load as complete after a short delay to avoid saving initial state
+        setTimeout(() => {
+          isInitialLoad.current = false;
+        }, 500);
       });
     } else {
       setIsLoading(false);
+      setTimeout(() => {
+        isInitialLoad.current = false;
+      }, 500);
     }
   }, []);
 
-  // Save data to Chrome storage
-  const handleSave = () => {
+  // Auto-save function (reusable, memoized) - uses ref to get latest data
+  const autoSave = useCallback((showToast = false, dataToSave?: UserData) => {
     if (typeof chrome !== 'undefined' && chrome.storage) {
-      chrome.storage.sync.set({ userData }, () => {
-        toast.success('Settings saved successfully!');
+      const data = dataToSave || userDataRef.current;
+      chrome.storage.sync.set({ userData: data }, () => {
+        if (showToast) {
+          toast.success('Settings saved successfully!');
+        }
       });
-    } else {
-      toast.error('Chrome storage not available');
     }
+  }, []);
+
+  // Auto-save data to Chrome storage with debouncing
+  useEffect(() => {
+    // Don't autosave during initial load or if still loading
+    if (isLoading || isInitialLoad.current) {
+      return;
+    }
+
+    // Clear any existing timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Set a new timeout to save after 100ms of no changes (very short for faster saves)
+    saveTimeoutRef.current = setTimeout(() => {
+      autoSave(false);
+    }, 100);
+
+    // Cleanup: save immediately if component unmounts before timeout completes
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+      }
+      // Save immediately on unmount if we have data and it's not initial load
+      // Use the ref to get the latest data even if state hasn't updated
+      if (!isLoading && !isInitialLoad.current) {
+        autoSave(false, userDataRef.current);
+      }
+    };
+  }, [userData, isLoading, autoSave]);
+
+  // Save on window unload/pagehide (when user closes extension tab/window)
+  useEffect(() => {
+    const saveOnExit = () => {
+      if (!isLoading && !isInitialLoad.current) {
+        // Save immediately on exit using ref to get latest data
+        if (typeof chrome !== 'undefined' && chrome.storage) {
+          chrome.storage.sync.set({ userData: userDataRef.current });
+        }
+      }
+    };
+
+    // pagehide is more reliable than beforeunload in Chrome extensions
+    window.addEventListener('pagehide', saveOnExit);
+    window.addEventListener('beforeunload', saveOnExit);
+    
+    // Also listen for visibility change (when tab becomes hidden)
+    const handleVisibilityChange = () => {
+      if (document.hidden && !isLoading && !isInitialLoad.current) {
+        // Clear any pending timeout and save immediately
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+          saveTimeoutRef.current = null;
+        }
+        // Save immediately when tab becomes hidden using ref
+        if (typeof chrome !== 'undefined' && chrome.storage) {
+          chrome.storage.sync.set({ userData: userDataRef.current });
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('pagehide', saveOnExit);
+      window.removeEventListener('beforeunload', saveOnExit);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      // Final save attempt on cleanup
+      saveOnExit();
+    };
+  }, [userData, isLoading]);
+
+  // Save immediately when any input/textarea/select loses focus
+  useEffect(() => {
+    const handleBlur = (e: FocusEvent) => {
+      const target = e.target as HTMLElement;
+      // Check if the blurred element is an input, textarea, or select
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT')) {
+        // Clear any pending timeout and save immediately
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+          saveTimeoutRef.current = null;
+        }
+        // Small delay to ensure state has updated
+        setTimeout(() => {
+          if (!isLoading && !isInitialLoad.current) {
+            autoSave(false, userDataRef.current);
+          }
+        }, 50);
+      }
+    };
+
+    // Use capture phase to catch all blur events
+    document.addEventListener('blur', handleBlur, true);
+
+    return () => {
+      document.removeEventListener('blur', handleBlur, true);
+    };
+  }, [isLoading, autoSave]);
+
+  // Save data to Chrome storage (manual save button)
+  const handleSave = () => {
+    autoSave(true);
   };
 
   // Auto-fill current page
@@ -251,6 +375,11 @@ export default function App() {
         try {
           const importedData = JSON.parse(e.target?.result as string);
           setUserData({ ...defaultUserData, ...importedData });
+          // Temporarily disable autosave to avoid saving during import
+          isInitialLoad.current = true;
+          setTimeout(() => {
+            isInitialLoad.current = false;
+          }, 500);
           toast.success('Data imported successfully!');
         } catch (error) {
           toast.error('Failed to import data. Invalid JSON file.');
@@ -263,17 +392,32 @@ export default function App() {
   // Handle resume data extraction
   const handleResumeDataExtracted = (extractedData: Partial<UserData>) => {
     setUserData(prev => ({ ...prev, ...extractedData }));
+    // Temporarily disable autosave to avoid saving during import
+    isInitialLoad.current = true;
+    setTimeout(() => {
+      isInitialLoad.current = false;
+    }, 500);
     toast.success('Resume data has been imported! Please review and save.');
   };
 
   // Handle JSON import
   const handleJsonImported = (importedData: UserData) => {
     setUserData({ ...defaultUserData, ...importedData });
+    // Temporarily disable autosave to avoid saving during import
+    isInitialLoad.current = true;
+    setTimeout(() => {
+      isInitialLoad.current = false;
+    }, 500);
     toast.success('Data imported successfully!');
   };
 
   const updateUserData = (field: keyof UserData, value: any) => {
-    setUserData(prev => ({ ...prev, [field]: value }));
+    setUserData(prev => {
+      const updated = { ...prev, [field]: value };
+      // Update ref immediately so it's available for saves
+      userDataRef.current = updated;
+      return updated;
+    });
   };
 
   if (isLoading) {
@@ -377,9 +521,9 @@ export default function App() {
             </AlertDescription>
           </Alert>
 
-          <Alert className="mb-6 border-amber-200 bg-amber-50">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <AlertDescription className="text-amber-900">
+          <Alert className="mb-6 border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
+            <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            <AlertDescription className="text-amber-900 dark:text-amber-200">
               Due to the way ATS systems such as Workday, iCIMS, Greenhouse, Lever, Taleo, etc. work, this may not work 100% of the time, but we try to make it so it works as well as the ATS lets it. Our goal is to help save you time, so by filling these out, we hope you find that it does save you time and we value your feedback.
             </AlertDescription>
           </Alert>

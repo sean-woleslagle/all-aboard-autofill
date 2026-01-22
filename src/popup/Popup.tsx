@@ -10,22 +10,60 @@ import { UserData } from '@/app/App';
 
 const defaultUserData: Partial<UserData> = {};
 
+// Helper function to check if user has any data
+const checkHasData = (data: Partial<UserData> | undefined) => {
+  if (!data) return false;
+  // Check if any basic field has been filled in
+  return !!(
+    data.firstName ||
+    data.lastName ||
+    data.email ||
+    data.phone ||
+    data.address ||
+    (data.employmentHistory && data.employmentHistory.length > 0) ||
+    (data.educationHistory && data.educationHistory.length > 0)
+  );
+};
+
 export default function Popup() {
   const [userData, setUserData] = useState<Partial<UserData>>(defaultUserData);
   const [fillStatus, setFillStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [hasData, setHasData] = useState(false);
 
-  useEffect(() => {
-    // Load data from Chrome storage
+  // Load data from Chrome storage
+  const loadUserData = () => {
     if (typeof chrome !== 'undefined' && chrome.storage) {
       chrome.storage.sync.get(['userData'], (result) => {
         if (result.userData) {
           setUserData(result.userData);
-          // Check if user has filled in basic info
-          const hasBasicInfo = result.userData.firstName && result.userData.lastName && result.userData.email;
-          setHasData(!!hasBasicInfo);
+          setHasData(checkHasData(result.userData));
+        } else {
+          setHasData(false);
         }
       });
+    }
+  };
+
+  useEffect(() => {
+    // Load data on mount
+    loadUserData();
+
+    // Listen for storage changes (when data is saved from settings page)
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }) => {
+        if (changes.userData) {
+          const newData = changes.userData.newValue;
+          setUserData(newData || defaultUserData);
+          setHasData(checkHasData(newData));
+        }
+      };
+
+      chrome.storage.onChanged.addListener(handleStorageChange);
+
+      // Cleanup listener on unmount
+      return () => {
+        chrome.storage.onChanged.removeListener(handleStorageChange);
+      };
     }
   }, []);
 
@@ -86,8 +124,7 @@ export default function Popup() {
             if (typeof chrome !== 'undefined' && chrome.storage) {
               chrome.storage.sync.set({ userData: importedData }, () => {
                 setUserData(importedData);
-                const hasBasicInfo = importedData.firstName && importedData.lastName && importedData.email;
-                setHasData(!!hasBasicInfo);
+                setHasData(checkHasData(importedData));
               });
             }
           } catch (error) {

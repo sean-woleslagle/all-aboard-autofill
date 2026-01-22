@@ -3,7 +3,7 @@
 A powerful Chrome extension that automatically fills job application forms with your personal information, saving hours of repetitive typing when applying for jobs.
 
 ![Extension Demo](https://img.shields.io/badge/Chrome-Extension-blue?logo=google-chrome)
-![Version](https://img.shields.io/badge/version-1.0.0-green)
+![Version](https://img.shields.io/badge/version-1.1.0-green)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
 ## ✨ Features
