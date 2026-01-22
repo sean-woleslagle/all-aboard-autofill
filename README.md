@@ -193,16 +193,6 @@ This extension is designed to assist with filling repetitive form data. Always:
 - Read and follow each company's application guidelines
 - Ensure accuracy of all submitted information
 
-## 🌟 Future Enhancements
-
-Potential features for future versions:
-- Multiple profiles for different job types
-- Resume parsing to auto-populate fields
-- Cover letter templates
-- Application tracking
-- Browser sync across devices
-- Custom field mappings
-
 ---
 
 **Made with ❤️ for job seekers everywhere**
