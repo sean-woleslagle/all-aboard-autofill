@@ -14,7 +14,6 @@ A powerful Chrome extension that automatically fills job application forms with 
 - **💼 Employment History** - Manage multiple previous positions with dates and descriptions
 - **🔗 Social Links** - LinkedIn, Twitter/X, personal website/portfolio
 - **📊 Demographics** - Optional EEO information (disability status, race, veteran status)
-- **⚡ Two Modes** - Manual fill on-demand or automatic fill on page load
 - **💾 Data Management** - Export/import your data as JSON for backup or transfer
 - **🔒 Privacy First** - All data stored locally, nothing sent to external servers
 - **🎨 Beautiful UI** - Modern, intuitive settings interface built with React
